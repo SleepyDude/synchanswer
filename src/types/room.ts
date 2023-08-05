@@ -1,16 +1,21 @@
 export type TJoinRoomPayload = {
-    username: string;
-    roomId: string;
-}
+  username: string;
+  roomId: string;
+};
 
 export type TCreateRoomPayload = {
-    username: string;
-    question: string;
-    roomId: string;
-}
+  username: string;
+  question: string;
+  // roomId: string;
+};
+
+export type TUser = {
+  username: string;
+  hasAnswer: boolean;
+  isHost: boolean;
+};
 
 export type TJoinRoomResult = {
-    username: string;
-    hasAnswer: boolean;
-    isHost: boolean;
-}[]
+  statusCode: number;
+  data: TUser[];
+};

@@ -1,53 +1,67 @@
-import { useParams, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react';
-import { joinRoom } from '../api/room';
-import { TJoinRoomPayload, TJoinRoomResult } from '../types/room';
+import { useEffect, useState } from "react";
+import { joinRoom, leaveRoom } from "../api/room";
+import { TUser } from "../types/room";
+import Pusher from "pusher-js";
 
-function Room() {
-    const { roomId } = useParams();
-    const location = useLocation();
-    const state: TJoinRoomPayload = location.state;
-    const [users, setUsers] = useState<TJoinRoomResult>([]);
+type TRoomProps = {
+  roomId: string;
+  username: string;
+};
 
-    useEffect(() => {
-        
-        joinRoom(state).then((resp) => {
-            resp.json().then((result: TJoinRoomResult) => {
-                setUsers(() => result);
-            })
-        })
-        
-        // const pusher = new Pusher (
-        //     '' + process.env.PUSHER_APP_ID,
-        //     {
-        //         cluster: process.env.PUSHER_CLUSTER || 'eu',
-        //     }
-        // );
+function Room(props: TRoomProps) {
+  const [users, setUsers] = useState<TUser[]>([]);
 
-        // const roomChannel = pusher.subscribe('rooms');
+  useEffect(() => {
+    joinRoom(props).then((users) => {
+      console.log(users);
+      setUsers(users);
+    });
 
-        // roomChannel.bind(roomId, onRoomMessage);
+    // console.log(`pusher_app_id: ${process.env.PUSHER_APP_ID}`);
+    // console.log(`pusher_cluster: ${process.env.PUSHER_CLUSTER}`);
 
-        // return (() => {
-		// 	pusher.unsubscribe(roomId)
-		// })
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    // const pusher = new Pusher("" + process.env.PUSHER_APP_ID, {
+    //   cluster: process.env.PUSHER_CLUSTER || "eu",
+    // });
 
-    return (
-        <div>
-            <h1>Room {roomId}</h1>
-            <h1>State {JSON.stringify(state)}</h1>
-            <ol>
-            {
-                users.map(user => 
-                    <li>{JSON.stringify(user)}</li> 
-                )
-            }
-            </ol>
-            
-        </div>
-    )
+    // const roomChannel = pusher.subscribe("rooms");
+
+    // roomChannel.bind(props.roomId, (data: string) => {
+    //   console.log(`data from room channel: ${data}`);
+    // });
+
+    // pusher.connection.bind("connected", function () {
+    //   console.log("connected");
+    // });
+
+    // pusher.connection.bind(
+    //   "state_change",
+    //   function (states: { previous: string; current: string }) {
+    //     console.log(
+    //       `state change from ${states.previous} to ${states.current}`,
+    //     );
+    //   },
+    // );
+
+    return () => {
+      // pusher.unbind_all();
+      // pusher.unsubscribe("rooms");
+      leaveRoom(props).then(() => console.log("Leave room finished"));
+    };
+  }, []);
+
+  return (
+    <div>
+      <h1>Room: {props.roomId}</h1>
+      <h1>User: {props.username}</h1>
+      {/* <p>{JSON.stringify(users)}</p> */}
+      <ol>
+        {users.map((user) => (
+          <li key={user.username}>{JSON.stringify(user)}</li>
+        ))}
+      </ol>
+    </div>
+  );
 }
 
-export default Room
+export default Room;
