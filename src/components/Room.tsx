@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { joinRoom, leaveRoom } from "../api/room";
 import { TUser } from "../types/room";
 import Pusher from "pusher-js";
+import { SERVERHOST } from "../api/constants";
 
 type TRoomProps = {
   roomId: string;
@@ -17,14 +18,36 @@ function Room(props: TRoomProps) {
       setUsers(users);
     });
 
-    // console.log(`pusher_app_id: ${process.env.PUSHER_APP_ID}`);
+    console.log(`pusher_app_id: ${JSON.stringify(import.meta.env)}`);
     // console.log(`pusher_cluster: ${process.env.PUSHER_CLUSTER}`);
 
-    // const pusher = new Pusher("" + process.env.PUSHER_APP_ID, {
-    //   cluster: process.env.PUSHER_CLUSTER || "eu",
-    // });
+    const pusher = new Pusher("" + import.meta.env.VITE_PUSHER_APP_KEY, {
+      cluster: import.meta.env.PUSHER_CLUSTER || "eu",
+      forceTLS: true,
+      userAuthentication: {
+        endpoint: `${SERVERHOST}/pusher/user-auth`,
+        transport: "ajax",
+        params: {
+          roomId: props.roomId,
+        },
+      },
+      // channelAuthorization: {
+      //   endpoint: `${SERVERHOST}/pusher/user-auth`,
+      //   transport: "ajax",
+      // },
+    });
 
-    // const roomChannel = pusher.subscribe("rooms");
+    // const watchlistEventHandler = (event: {
+    //   user_ids: unknown;
+    //   name: unknown;
+    // }) => {
+    //   console.log(`watchlistEvent: ${JSON.stringify(event)}`);
+    // };
+    // pusher.user.watchlist.bind("online", watchlistEventHandler);
+    // pusher.user.watchlist.bind("offline", watchlistEventHandler);
+
+    pusher.subscribe("rooms");
+    pusher.signin();
 
     // roomChannel.bind(props.roomId, (data: string) => {
     //   console.log(`data from room channel: ${data}`);
@@ -44,9 +67,9 @@ function Room(props: TRoomProps) {
     // );
 
     return () => {
-      // pusher.unbind_all();
-      // pusher.unsubscribe("rooms");
       leaveRoom(props).then(() => console.log("Leave room finished"));
+      // pusher.unbind_all();
+      pusher.unsubscribe("rooms");
     };
   }, []);
 
