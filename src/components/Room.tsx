@@ -11,6 +11,7 @@ type TRoomProps = {
 
 function Room(props: TRoomProps) {
   const [users, setUsers] = useState<TUser[]>([]);
+  
 
   useEffect(() => {
     joinRoom(props).then((users) => {
